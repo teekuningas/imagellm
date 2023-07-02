@@ -1,0 +1,5 @@
+elm-stuff
+dist
+build
+node_modules
+.parcel-cache
