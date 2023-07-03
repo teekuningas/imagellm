@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: |
         docker build -f Containerfile -t localhost/imagellm-frontend:$IMAGE_TAG .
-        docker save localhost/imagellm-frontend:$IMAGE_TAG | gzip > imagellm-frontend-$IMAGE_TAG.tar.gz
+        docker save localhost/imagellm-frontend:$IMAGE_TAG | gzip > imagellm-frontend-${IMAGE_TAG}.tar.gz
 
     - name: Create Release
       id: create_release
@@ -39,6 +39,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./imagellm-frontend:${{ env.IMAGE_TAG }}.tar.gz
-        asset_name: imagellm-frontend:${{ env.IMAGE_TAG }}.tar.gz
+        asset_path: ./imagellm-frontend-${{ env.IMAGE_TAG }}.tar.gz
+        asset_name: imagellm-frontend-${{ env.IMAGE_TAG }}.tar.gz
         asset_content_type: application/gzip
