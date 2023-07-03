@@ -17,13 +17,14 @@ COPY src/ ./src/
 COPY static/ ./static/
 COPY styles/ ./styles/
 
-RUN chown -R nobody:nogroup /app
-
 # Install dependencies
 RUN npm install
 
 # Build the application
 RUN ./node_modules/.bin/parcel build index.html
+
+# Update ownership
+RUN chown -R nobody:nogroup /app
 
 # Define the inline nginx.conf
 RUN echo '\
