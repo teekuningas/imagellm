@@ -17,9 +17,6 @@ COPY src/ ./src/
 COPY static/ ./static/
 COPY styles/ ./styles/
 
-# Switch to root to install
-USER root
-
 # Install dependencies
 RUN npm install
 
@@ -47,12 +44,6 @@ exec nginx -g "daemon off;" \
 
 # Add permissions
 RUN chmod +x /entrypoint.sh
-
-# Update ownership
-RUN chown -R nobody:nogroup /app
-
-# Set the user to a known system user
-USER nobody
 
 # Expose port 9000
 EXPOSE 9000
