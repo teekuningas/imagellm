@@ -17,6 +17,8 @@ COPY src/ ./src/
 COPY static/ ./static/
 COPY styles/ ./styles/
 
+RUN chown -R nobody:nogroup /app
+
 # Install dependencies
 RUN npm install
 
