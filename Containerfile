@@ -17,14 +17,14 @@ COPY src/ ./src/
 COPY static/ ./static/
 COPY styles/ ./styles/
 
+# Switch to root to install
+USER root
+
 # Install dependencies
 RUN npm install
 
 # Build the application
 RUN ./node_modules/.bin/parcel build index.html
-
-# Update ownership
-RUN chown -R root:root /app
 
 # Define the inline nginx.conf
 RUN echo '\
@@ -45,7 +45,14 @@ echo "Starting to serve at 9000" \n\
 exec nginx -g "daemon off;" \
 ' > /entrypoint.sh
 
+# Add permissions
 RUN chmod +x /entrypoint.sh
+
+# Update ownership
+RUN chown -R nobody:nogroup /app
+
+# Set the user to a known system user
+USER nobody
 
 # Expose port 9000
 EXPOSE 9000
