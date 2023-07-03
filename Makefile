@@ -1,7 +1,6 @@
 .PHONY: build
 build:
-	rm -fr dist/*
-	node_modules/.bin/parcel build index.html
+	podman build -t localhost/imagellm-frontend .
 
 .PHONY: watch
 watch: node_modules

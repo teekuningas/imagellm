@@ -1,4 +1,5 @@
 {
+  "name": "imagellm-frontend",
   "private": true,
   "scripts": {
     "start": "parcel index.html"
