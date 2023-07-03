@@ -24,7 +24,7 @@ RUN npm install
 RUN ./node_modules/.bin/parcel build index.html
 
 # Update ownership
-RUN chown -R nobody:nogroup /app
+RUN chown -R root:root /app
 
 # Define the inline nginx.conf
 RUN echo '\
@@ -51,4 +51,5 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 9000
 
 # Start Nginx
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["/entrypoint.sh"]
