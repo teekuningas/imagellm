@@ -1,0 +1,81 @@
+/* Overall container */
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 60px;
+  box-sizing: border-box;
+}
+
+/* Single message container */
+.message-container {
+  background: #f0f0f0;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Text content */
+.text-content {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+/* Image content */
+.image-content {
+  margin-bottom: 10px;
+}
+
+/* Image */
+.message-image {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Input container */
+.input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Input container > button */
+.input-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Input container > input */
+.input-container input {
+  flex-grow: 1;
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+/* Colors for user and assistant messages */
+.message-container-user {
+  background: #e6f7ff;  /* Light blue background for user messages */
+}
+
+.message-container-assistant {
+  background: #f9f9f9;  /* Light gray background for assistant messages */
+}

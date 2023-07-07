@@ -6,8 +6,8 @@ build:
 watch: node_modules
 	rm -fr .parcel-cache && PARCEL_ELM_NO_DEBUG=1 npm start
 
-.PHONY: prettier
-prettier:
+.PHONY: format
+format:
 	./node_modules/.bin/elm-format src/*
 
 .PHONY: node_modules
