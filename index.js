@@ -1,9 +1,10 @@
 import { Elm } from './src/Main.elm'
 import './styles/main.css'
 
-const apiAddress = process.env.API_ADDRESS;
+const runtimeApiAddress = "%%RUNTIME_API_ADDRESS%%";
+
 const flags = {
-  "apiAddress": apiAddress
+  "apiAddress": !runtimeApiAddress.includes("RUNTIME_API_ADDRESS") ? runtimeApiAddress : "http://localhost:8000"
 };
 
 // Start the Elm application.

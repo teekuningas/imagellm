@@ -38,6 +38,12 @@ server { \n\
 
 # Define the entrypoint
 RUN echo '#!/bin/sh \n\
+echo "Replacing API address in JS files" \n\
+for file in /app/dist/index.*.js; do \n\
+  if [ -f "$file" ]; then \n\
+    sed -i "s|%%RUNTIME_API_ADDRESS%%|${API_ADDRESS:-http://localhost:8000}|g" $file \n\
+  fi \n\
+done \n\
 echo "Starting to serve at 9000" \n\
 exec nginx -g "daemon off;" \
 ' > /entrypoint.sh
