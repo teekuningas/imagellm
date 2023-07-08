@@ -1,8 +1,8 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, img, input, text)
-import Html.Attributes exposing (alt, class, id, placeholder, src, value)
+import Html exposing (Html, button, div, img, text, textarea)
+import Html.Attributes exposing (alt, class, id, placeholder, rows, src, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -186,12 +186,12 @@ view model =
     div []
         [ div [ class "messages-container" ] (List.map viewMessage messages)
         , if model.loading then
-            div [] [ text "Loading..." ]
+            div [ class "input-container-loading" ] [ text "Loading..." ]
 
           else
             div [ class "input-container" ]
                 [ button [ onClick (SendMessage model.input) ] [ text "Send" ]
-                , input [ placeholder "Type your message", onInput NewMessage, value model.input ] []
+                , textarea [ placeholder "Type your message", onInput NewMessage, value model.input, rows 1 ] []
                 ]
         ]
 

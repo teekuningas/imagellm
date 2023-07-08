@@ -3,10 +3,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 60px;
+  padding-bottom: 180px; /* increased bottom padding */
   box-sizing: border-box;
 }
 
@@ -23,7 +23,7 @@
 .text-content {
   margin-bottom: 10px;
   line-height: 1.5;
-  font-size: 16px;
+  font-size: 2em;
 }
 
 /* Image content */
@@ -43,32 +43,57 @@
   bottom: 0;
   left: 0;
   width: 100%;
+  height: 10em;
   background: #fff;
-  padding: 20px;
+  padding: 10px;
+  margin-bottom: 20px;
   box-sizing: border-box;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
 }
 
 /* Input container > button */
 .input-container button {
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 0.75em 1.5em;
+  font-size: 2em;
   background: #007BFF;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin-left: 20px;
 }
 
-/* Input container > input */
-.input-container input {
+/* Input container > textarea */
+.input-container textarea {
   flex-grow: 1;
-  margin-right: 10px;
   padding: 10px;
-  font-size: 16px;
+  font-size: 2em;
   border-radius: 5px;
   border: 1px solid #ddd;
+  resize: none;
+  margin-right: 20px;
+}
+
+.input-container-loading {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  padding: 1em;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  font-size: 2em;
+  animation: fade 1s infinite;
+}
+
+@keyframes fade {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Colors for user and assistant messages */
