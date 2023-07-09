@@ -2,7 +2,6 @@
 .messages-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
@@ -16,7 +15,6 @@
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
-  width: 100%;
 }
 
 /* Text content */
@@ -55,8 +53,8 @@
 
 /* Input container > button */
 .input-container button {
-  padding: 0.75em 1.5em;
-  font-size: 2em;
+  padding: 0.5em 1.0em;
+  font-size: 3em;
   background: #007BFF;
   color: white;
   border: none;
@@ -74,6 +72,11 @@
   border: 1px solid #ddd;
   resize: none;
   margin-right: 20px;
+}
+
+/* Input container > textarea > placeholder */
+.input-container textarea::placeholder {
+  font-size: 1em;
 }
 
 .input-container-loading {
