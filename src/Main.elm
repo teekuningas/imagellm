@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, img, text, textarea)
+import Html exposing (Html, button, div, img, text, p, textarea)
 import Html.Attributes exposing (alt, class, id, placeholder, rows, src, value)
 import Html.Events exposing (onClick, onInput)
 import Http
@@ -219,7 +219,7 @@ viewContents images augmentedContents =
         helper augmentedContent =
             case augmentedContent of
                 ( Text txt, Nothing ) ->
-                    div [ class "text-content" ] [ text txt ]
+                    div [ class "text-content" ] [ p [] [text txt] ]
 
                 ( ImagePlaceholder alttext, Just index ) ->
                     case List.drop index images of
