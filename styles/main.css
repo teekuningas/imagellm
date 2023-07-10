@@ -107,9 +107,24 @@
 
 /* Colors for user and assistant messages */
 .message-container-user {
-  background: #e6f7ff;  /* Light blue background for user messages */
+  background: #e6f7ff;
 }
 
 .message-container-assistant {
-  background: #f9f9f9;  /* Light gray background for assistant messages */
+  background: #f9f9f9;
 }
+
+
+/* Style code blocks */
+.code-content pre {
+    padding: 1em;
+    background-color: #2f2f2f;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.code-content code {
+    font-family: 'Courier New', monospace;
+    color: #f8f8f8;
+}
+

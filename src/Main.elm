@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, img, text, p, textarea)
+import Html exposing (Html, button, code, div, img, p, pre, text, textarea)
 import Html.Attributes exposing (alt, class, id, placeholder, rows, src, value)
 import Html.Events exposing (onClick, onInput)
 import Http
@@ -50,6 +50,7 @@ type alias Model =
 type Content
     = Text String
     | ImagePlaceholder String
+    | CodeBlock String String
 
 
 
@@ -219,7 +220,7 @@ viewContents images augmentedContents =
         helper augmentedContent =
             case augmentedContent of
                 ( Text txt, Nothing ) ->
-                    div [ class "text-content" ] [ p [] [text txt] ]
+                    div [ class "text-content" ] [ p [] [ text txt ] ]
 
                 ( ImagePlaceholder alttext, Just index ) ->
                     case List.drop index images of
@@ -228,6 +229,9 @@ viewContents images augmentedContents =
 
                         [] ->
                             div [] []
+
+                ( CodeBlock lang txt, Nothing ) ->
+                    div [ class "code-content" ] [ pre [] [ code [] [ text txt ] ] ]
 
                 _ ->
                     div [] []
@@ -247,11 +251,11 @@ augmentContents index contents =
 
         content :: rest ->
             case content of
-                Text inner ->
-                    ( content, Nothing ) :: augmentContents index rest
-
                 ImagePlaceholder inner ->
                     ( content, Just index ) :: augmentContents (index + 1) rest
+
+                _ ->
+                    ( content, Nothing ) :: augmentContents index rest
 
 
 indexes : String -> String -> List Int
@@ -279,62 +283,91 @@ countSubString subStr str =
         |> (\x -> x - 1)
 
 
-countTags : String -> ( Int, Int )
-countTags text =
-    ( countSubString "{{" text, countSubString "}}" text )
+assertMatchingPairs : String -> String -> String -> Bool
+assertMatchingPairs text left right =
+    countSubString left text == countSubString right text
 
 
-splitContentHelper : String -> List Content
-splitContentHelper remainingText =
+splitContentHelper : (String -> Content) -> String -> String -> String -> List Content
+splitContentHelper constructor left right remainingText =
     if String.isEmpty remainingText then
         []
 
     else
-        case String.startsWith "{{" remainingText of
+        case String.startsWith left remainingText of
             True ->
                 let
-                    imageTagEndIndex =
-                        indexes "}}" remainingText
-                            |> List.head
-                            |> Maybe.withDefault (String.length remainingText)
+                    rest =
+                        String.dropLeft (String.length left) remainingText
 
-                    imagePlaceholder =
-                        String.slice 0 imageTagEndIndex remainingText
-                            |> String.dropLeft 2
+                    substrEndIndex =
+                        indexes right rest
+                            |> List.head
+                            |> Maybe.withDefault (String.length rest)
+
+                    obj =
+                        String.slice 0 substrEndIndex rest
                             |> String.trim
-                            |> ImagePlaceholder
+                            |> constructor
 
                     remaining =
-                        String.dropLeft (imageTagEndIndex + 2) remainingText
+                        String.dropLeft (substrEndIndex + String.length right) rest
                 in
-                imagePlaceholder :: splitContentHelper remaining
+                obj :: splitContentHelper constructor left right remaining
 
             False ->
                 let
-                    nextImageTagIndex =
-                        indexes "{{" remainingText
+                    nextSubstrIndex =
+                        indexes left remainingText
                             |> List.head
                             |> Maybe.withDefault (String.length remainingText)
 
                     textContent =
-                        String.slice 0 nextImageTagIndex remainingText
+                        String.slice 0 nextSubstrIndex remainingText
                             |> String.trim
                             |> Text
 
                     remaining =
-                        String.dropLeft nextImageTagIndex remainingText
+                        String.dropLeft nextSubstrIndex remainingText
                 in
-                textContent :: splitContentHelper remaining
+                textContent :: splitContentHelper constructor left right remaining
 
 
 splitContent : String -> List Content
-splitContent text =
+splitContent fullText =
     let
-        ( startTags, endTags ) =
-            countTags text
-    in
-    if startTags /= endTags then
-        []
+        imagesSplit =
+            if assertMatchingPairs "{{" "}}" fullText then
+                splitContentHelper ImagePlaceholder "{{" "}}" fullText
 
-    else
-        splitContentHelper text
+            else
+                []
+
+        codeBlockFromText codeText =
+            let
+                parts =
+                    String.split "\n" codeText
+
+                lang =
+                    List.head parts
+                        |> Maybe.withDefault ""
+
+                code =
+                    List.tail parts
+                        |> Maybe.withDefault []
+                        |> String.join "\n"
+            in
+            CodeBlock lang code
+
+        finalSplitHelper content =
+            case content of
+                Text str ->
+                    splitContentHelper codeBlockFromText "```" "```" str
+
+                ImagePlaceholder str ->
+                    [ content ]
+
+                _ ->
+                    []
+    in
+    List.concat (List.map finalSplitHelper imagesSplit)
