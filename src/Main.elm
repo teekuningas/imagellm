@@ -119,13 +119,18 @@ postMessages : List Message -> String -> Cmd Msg
 postMessages messages apiAddress =
     Http.post
         { url = apiAddress ++ "/generate_response"
-        , body = Http.jsonBody (Encode.object [ ( "messages", Encode.list messageEncoder messages ) ])
+        , body = Http.jsonBody (messagesEncoder messages)
         , expect = Http.expectJson ReceiveMessages messagesDecoder
         }
 
 
 
 -- Encoders
+
+
+messagesEncoder : List Message -> Encode.Value
+messagesEncoder messages =
+    Encode.object [ ( "messages", Encode.list messageEncoder messages ) ]
 
 
 messageEncoder : Message -> Encode.Value
@@ -181,8 +186,6 @@ view model =
     let
         messages =
             model.messages
-
-        -- debugmessage = Debug.log "messages" messages
     in
     div []
         [ div [ class "messages-container" ] (List.map viewMessage messages)
@@ -197,21 +200,33 @@ view model =
         ]
 
 
+
+-- Creates a div that will contain everything that belongs to a single
+-- conversational element, e.g. a single complete response from the AI
+
+
 viewMessage message =
     let
+        -- Split the message to multiple parts for easier presentation
         contents =
             splitContent message.text
 
+        -- Get the images
         images =
             message.images
 
-        roleClass =
-            "message-container-" ++ message.role
-
+        -- Get the image placeholders indexed for easier matching.
         augmentedContents =
             augmentContents 0 contents
+
+        roleClass =
+            "message-container-" ++ message.role
     in
     div [ class "message-container", class roleClass ] (viewContents images augmentedContents)
+
+
+
+-- Renders a list of divs within a single conversational element.
 
 
 viewContents : List Image -> List ( Content, Maybe Int ) -> List (Html msg)
@@ -241,6 +256,36 @@ viewContents images augmentedContents =
 
 
 -- Helpers
+-- Count occurences of substring in a string
+
+
+countSubString : String -> String -> Int
+countSubString substr str =
+    String.split substr str
+        |> List.length
+        |> (\x -> x - 1)
+
+
+
+-- Check that there is a equal amount of openings and endings
+
+
+assertMatchingPairs : String -> String -> String -> Bool
+assertMatchingPairs text left right =
+    countSubString left text == countSubString right text
+
+
+
+-- Check that there is an even amount of occurences.
+
+
+assertEven : String -> String -> Bool
+assertEven substr str =
+    modBy 2 (countSubString substr str) == 0
+
+
+
+-- Pairs each image placeholder with a index
 
 
 augmentContents : Int -> List Content -> List ( Content, Maybe Int )
@@ -258,34 +303,9 @@ augmentContents index contents =
                     ( content, Nothing ) :: augmentContents index rest
 
 
-indexes : String -> String -> List Int
-indexes needle haystack =
-    let
-        helper idx str acc =
-            case String.indexes needle str of
-                [] ->
-                    List.reverse acc
 
-                h :: _ ->
-                    let
-                        newIndex =
-                            idx + h
-                    in
-                    helper (newIndex + String.length needle) (String.dropLeft (h + String.length needle) str) (newIndex :: acc)
-    in
-    helper 0 haystack []
-
-
-countSubString : String -> String -> Int
-countSubString subStr str =
-    String.split subStr str
-        |> List.length
-        |> (\x -> x - 1)
-
-
-assertMatchingPairs : String -> String -> String -> Bool
-assertMatchingPairs text left right =
-    countSubString left text == countSubString right text
+-- A hard-working function that finds patterns inside a big string by dividing
+-- it into a "foreground" and "background" parts one a at a time.
 
 
 splitContentHelper : (String -> Content) -> String -> String -> String -> List Content
@@ -294,14 +314,18 @@ splitContentHelper constructor left right remainingText =
         []
 
     else
+        -- Are we at the beginning of the "foreground" part or not?
         case String.startsWith left remainingText of
+            -- If yes, take the contents within the wrapping
+            -- markings and call itself with the text after
+            -- the closing markings.
             True ->
                 let
                     rest =
                         String.dropLeft (String.length left) remainingText
 
                     substrEndIndex =
-                        indexes right rest
+                        String.indexes right rest
                             |> List.head
                             |> Maybe.withDefault (String.length rest)
 
@@ -315,10 +339,14 @@ splitContentHelper constructor left right remainingText =
                 in
                 obj :: splitContentHelper constructor left right remaining
 
+            -- If not, either find the next opening marking, or, if not present,
+            -- the end of the string, and then take the "background" text and
+            -- call itself either with the empty string, or from the start of the next
+            -- "foreground" marking.
             False ->
                 let
                     nextSubstrIndex =
-                        indexes left remainingText
+                        String.indexes left remainingText
                             |> List.head
                             |> Maybe.withDefault (String.length remainingText)
 
@@ -333,16 +361,25 @@ splitContentHelper constructor left right remainingText =
                 textContent :: splitContentHelper constructor left right remaining
 
 
+
+-- Takes a conversational element in string and splits it into
+-- interesting subparts that are easy to render.
+
+
 splitContent : String -> List Content
 splitContent fullText =
     let
-        imagesSplit =
+        -- Helper to split a big text to its image and text parts.
+        imagesSplit text =
             if assertMatchingPairs "{{" "}}" fullText then
-                splitContentHelper ImagePlaceholder "{{" "}}" fullText
+                splitContentHelper ImagePlaceholder "{{" "}}" text
 
             else
                 []
 
+        -- Helper to create a Code Block element from
+        -- "python\n print("Hello world")"
+        -- type of string.
         codeBlockFromText codeText =
             let
                 parts =
@@ -359,15 +396,34 @@ splitContent fullText =
             in
             CodeBlock lang code
 
-        finalSplitHelper content =
+        -- Helper that takes a Content object and if it is of Text type,
+        -- splits it into normal text and code blocks.
+        codeBlockSplit content =
             case content of
                 Text str ->
-                    splitContentHelper codeBlockFromText "```" "```" str
+                    if assertEven "```" fullText then
+                        splitContentHelper codeBlockFromText "```" "```" str
 
-                ImagePlaceholder str ->
-                    [ content ]
+                    else
+                        [ content ]
 
                 _ ->
-                    []
+                    [ content ]
+
+        -- Helper that takes a Content object and if it is of Text type,
+        -- splits it by linebreaks
+        lineBreakSplit content =
+            case content of
+                Text str ->
+                    String.split "\n" str
+                        |> List.map Text
+
+                _ ->
+                    [ content ]
     in
-    List.concat (List.map finalSplitHelper imagesSplit)
+    fullText
+        |> imagesSplit
+        |> List.concat
+        << List.map codeBlockSplit
+        |> List.concat
+        << List.map lineBreakSplit
