@@ -2,17 +2,16 @@
 FROM debian:latest
 
 # Install deps
-RUN apt-get update
-RUN apt-get install -y nodejs npm
-RUN apt-get install -y nginx
-RUN apt-get install -y gzip
+RUN apt-get update && \
+    apt-get install -y nodejs npm nginx gzip procps && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the source code
-COPY package.json package-lock.json elm.json ./
-COPY index.html index.js .parcelrc .npmrc ./
+COPY package.json package-lock.json elm.json index.html index.js .parcelrc .npmrc ./
 COPY src/ ./src/
 COPY static/ ./static/
 COPY styles/ ./styles/
@@ -37,23 +36,10 @@ server { \n\
 ' > /etc/nginx/conf.d/default.conf
 
 # Define the entrypoint
-RUN echo '#!/bin/sh \n\
-echo "Replacing API address in JS files" \n\
-for file in /app/dist/index.*.js; do \n\
-  if [ -f "$file" ]; then \n\
-    sed -i "s|%%RUNTIME_API_ADDRESS%%|${API_ADDRESS:-http://localhost:8000}|g" $file \n\
-  fi \n\
-done \n\
-echo "Starting to serve at 9000" \n\
-exec nginx -g "daemon off;" \
-' > /entrypoint.sh
-
-# Add permissions
-RUN chmod +x /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
 # Expose port 9000
 EXPOSE 9000
 
-# Start Nginx
-ENTRYPOINT ["/bin/sh", "-c"]
+# Start
 CMD ["/entrypoint.sh"]
